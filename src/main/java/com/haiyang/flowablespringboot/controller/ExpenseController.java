@@ -1,9 +1,12 @@
 package com.haiyang.flowablespringboot.controller;
 
+import cn.hutool.json.JSONUtil;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.engine.*;
 import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
+import org.flowable.idm.api.Group;
+import org.flowable.idm.api.User;
 import org.flowable.image.ProcessDiagramGenerator;
 import org.flowable.task.api.Task;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +39,9 @@ public class ExpenseController {
     @Autowired
     private ProcessEngine processEngine;
 
+    @Autowired
+    private IdentityService identityService;
+
 /***************此处为业务代码******************/
     /**
      * 添加报销
@@ -55,9 +61,40 @@ public class ExpenseController {
         return "提交成功.流程Id为：" + processInstance.getId();
     }
 
+
+
     /**
      * 获取审批管理列表
      */
+    @RequestMapping(value = "/user")
+    @ResponseBody
+    public Object taskList() {
+
+        //根据授予的角色查询出来任务
+        List<Task> tasks = taskService.createTaskQuery()
+                .taskAssignee("老板")
+                // .processVariableValueEquals("orderId", "0815")
+                .orderByTaskDueDate().asc()
+                .list();
+
+        System.out.println(JSONUtil.toJsonStr(tasks));
+
+
+       /* List<User> users = identityService.createUserQuery().list();    //用户查询，用户id对应xml 里面配置的用户
+		List<Group> groups = identityService.createGroupQuery().list(); //分组查询，分组id对应xml 里面配置的分组 如 stu_group，te_group 在表里是id的值
+
+        for (User task : users) {
+            System.out.println(JSONUtil.toJsonStr(task));
+        }
+        System.out.println("-----------------");
+
+        for (Group task : groups) {
+            System.out.println(JSONUtil.toJsonStr(task));
+        }*/
+
+        return "11111111";
+    }
+
     @RequestMapping(value = "/list")
     @ResponseBody
     public Object list(String userId) {
@@ -132,7 +169,7 @@ public class ExpenseController {
         BpmnModel bpmnModel = repositoryService.getBpmnModel(pi.getProcessDefinitionId());
         ProcessEngineConfiguration engconf = processEngine.getProcessEngineConfiguration();
         ProcessDiagramGenerator diagramGenerator = engconf.getProcessDiagramGenerator();
-        InputStream in = diagramGenerator.generateDiagram(bpmnModel, "png", activityIds, flows, engconf.getActivityFontName(), engconf.getLabelFontName(), engconf.getAnnotationFontName(), engconf.getClassLoader(), 1.0);
+        InputStream in = diagramGenerator.generateDiagram(bpmnModel, "png", activityIds, flows, engconf.getActivityFontName(), engconf.getLabelFontName(), engconf.getAnnotationFontName(), engconf.getClassLoader(), 1.0,true);
         OutputStream out = null;
         byte[] buf = new byte[1024];
         int legth = 0;
